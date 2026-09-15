@@ -3,3 +3,4 @@
 
 rm_conffile /etc/sudoers.d/whonixsetup
 rm_conffile /etc/sudoers.d/setup-dist
+rm_conffile /etc/privleap/conf.d/setup-dist-done.conf
