@@ -14,6 +14,7 @@ set -o pipefail
 set -o errtrace
 shopt -s inherit_errexit
 shopt -s shift_verbose
+export LC_ALL=C
 
 export PATH="${PATH}:/usr/libexec/setup-dist/"
 
@@ -67,9 +68,7 @@ check_passwords() {
    local output
    output="$(leaprun get-password-status-list)"
    if printf '%s' "${output}" | grep --ignore-case -- 'Absent' >/dev/null 2>&1; then
-      ## FIXME: This is throwing a shellcheck error in CI, we need to make sure
-      ## helper-scripts is available when we run shellcheck.
-      printf '%b\n' "[${yellow}NOTICE${nocolor}] Some user accounts on this system are passwordless. Run 'systemcheck' for more information."
+      printf '%s\n' "[${yellow}NOTICE${nocolor}] Some user accounts on this system are passwordless. Run 'systemcheck' for more information."
    fi
 }
 
