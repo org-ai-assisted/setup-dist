@@ -14,6 +14,7 @@ set -o pipefail
 set -o errtrace
 shopt -s inherit_errexit
 shopt -s shift_verbose
+export LC_ALL=C
 
 export PATH="${PATH}:/usr/libexec/setup-dist/"
 
@@ -33,7 +34,6 @@ trap "error_handler" ERR
 
 SCRIPTNAME="$(basename -- "${BASH_SOURCE[0]}")"
 
-# shellcheck disable=SC2317
 run_disclaimer_maybe() {
    if [ -f "/var/cache/setup-dist/status-files/disclaimer.done" ]; then
       return 0
@@ -50,26 +50,13 @@ run_disclaimer_maybe() {
 
    ## Disable disclaimer.
    return 0
-
-   exit_code="0"
-   ft_disclaimer || { exit_code="$?" ; true; };
-
-   if [ ! "${exit_code}" = "0" ]; then
-      printf '%s\n' "You can always enter setup-dist again, by starting: setup-dist"
-      exit 0
-   fi
-
-   mkdir --parents -- "/var/cache/setup-dist/status-files"
-   touch -- "/var/cache/setup-dist/status-files/disclaimer.done"
 }
 
 check_passwords() {
    local output
    output="$(leaprun get-password-status-list)"
    if printf '%s' "${output}" | grep --ignore-case -- 'Absent' >/dev/null 2>&1; then
-      ## FIXME: This is throwing a shellcheck error in CI, we need to make sure
-      ## helper-scripts is available when we run shellcheck.
-      printf '%b\n' "[${yellow}NOTICE${nocolor}] Some user accounts on this system are passwordless. Run 'systemcheck' for more information."
+      printf '%s\n' "[${yellow}NOTICE${nocolor}] Some user accounts on this system are passwordless. Run 'systemcheck' for more information."
    fi
 }
 
@@ -79,9 +66,8 @@ start_systemcheck() {
 Press Enter to run systemcheck and exit.
 "
    dialog_wrapper --title "${TITLE}" --msgbox "${MSG}" 640 480
-   ## Start systemcheck.
-   exit_code="0"
-   ft_m_end || { exit_code="$?" ; true; };
+   ## Start systemcheck. Failure is non-fatal; the user already finished setup.
+   ft_m_end || true
 }
 
 if [ "$(id -u)" = "0" ]; then
