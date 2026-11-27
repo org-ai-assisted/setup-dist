@@ -34,7 +34,6 @@ trap "error_handler" ERR
 
 SCRIPTNAME="$(basename -- "${BASH_SOURCE[0]}")"
 
-# shellcheck disable=SC2317
 run_disclaimer_maybe() {
    if [ -f "/var/cache/setup-dist/status-files/disclaimer.done" ]; then
       return 0
@@ -51,17 +50,6 @@ run_disclaimer_maybe() {
 
    ## Disable disclaimer.
    return 0
-
-   exit_code="0"
-   ft_disclaimer || { exit_code="$?" ; true; };
-
-   if [ ! "${exit_code}" = "0" ]; then
-      printf '%s\n' "You can always enter setup-dist again, by starting: setup-dist"
-      exit 0
-   fi
-
-   mkdir --parents -- "/var/cache/setup-dist/status-files"
-   touch -- "/var/cache/setup-dist/status-files/disclaimer.done"
 }
 
 check_passwords() {
@@ -78,9 +66,8 @@ start_systemcheck() {
 Press Enter to run systemcheck and exit.
 "
    dialog_wrapper --title "${TITLE}" --msgbox "${MSG}" 640 480
-   ## Start systemcheck.
-   exit_code="0"
-   ft_m_end || { exit_code="$?" ; true; };
+   ## Start systemcheck. Failure is non-fatal; the user already finished setup.
+   ft_m_end || true
 }
 
 if [ "$(id -u)" = "0" ]; then
